@@ -1,15 +1,11 @@
 // 1. FIXED ORDER: Global using alias placed at the absolute top of the source file
-global using il2cpp = Il2Cpp;
-
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using UnityEngine;
 using System.IO;
 using System.Reflection;
-using Il2Cpp;
-
-
+using Il2Cpp; // Perfect uppercase namespace link
 
 namespace AUCaptainRoleMod;
 
@@ -48,11 +44,12 @@ public class Plugin : BasePlugin
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
-    [HarmonyPatch(typeof(il2cpp.HudManager), nameof(il2cpp.HudManager.Start))]
+    // FIXED: Changed all lowercase hooks to crisp, explicit 'Il2Cpp' casing
+    [HarmonyPatch(typeof(Il2Cpp.HudManager), nameof(Il2Cpp.HudManager.Start))]
     [HarmonyPostfix]
-    public static void HudStartPatch(il2cpp.HudManager __instance)
+    public static void HudStartPatch(Il2Cpp.HudManager __instance)
     {
-        if (il2cpp.PlayerControl.LocalPlayer == null || il2cpp.PlayerControl.LocalPlayer.PlayerId != CaptainId) return;
+        if (Il2Cpp.PlayerControl.LocalPlayer == null || Il2Cpp.PlayerControl.LocalPlayer.PlayerId != CaptainId) return;
 
         Sprite zoomSprite = LoadCustomSprite("zoom_out.png");
         Sprite invisSprite = LoadCustomSprite("invisible.png");
@@ -60,9 +57,9 @@ public class Plugin : BasePlugin
         Sprite meetingSprite = LoadCustomSprite("button.png");
     }
 
-    [HarmonyPatch(typeof(il2cpp.PlayerControl), nameof(il2cpp.PlayerControl.FixedUpdate))]
+    [HarmonyPatch(typeof(Il2Cpp.PlayerControl), nameof(Il2Cpp.PlayerControl.FixedUpdate))]
     [HarmonyPostfix]
-    public static void GlobalAbilityTickPatch(il2cpp.PlayerControl __instance)
+    public static void GlobalAbilityTickPatch(Il2Cpp.PlayerControl __instance)
     {
         if (__instance.PlayerId != CaptainId || !__instance.AmOwner) return;
 
@@ -87,11 +84,11 @@ public class Plugin : BasePlugin
         }
     }
 
-    [HarmonyPatch(typeof(il2cpp.IntroCutscene), nameof(il2cpp.IntroCutscene.BeginCrewmate))]
+    [HarmonyPatch(typeof(Il2Cpp.IntroCutscene), nameof(Il2Cpp.IntroCutscene.BeginCrewmate))]
     [HarmonyPostfix]
-    public static void IntroSplashOverride(il2cpp.IntroCutscene __instance)
+    public static void IntroSplashOverride(Il2Cpp.IntroCutscene __instance)
     {
-        if (il2cpp.PlayerControl.LocalPlayer != null && il2cpp.PlayerControl.LocalPlayer.PlayerId == CaptainId)
+        if (Il2Cpp.PlayerControl.LocalPlayer != null && Il2Cpp.PlayerControl.LocalPlayer.PlayerId == CaptainId)
         {
             if (__instance.RoleText != null)
             {
