@@ -7,15 +7,30 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Explicit targets unblock the hidden types directly in the build pipeline -->
-    <Reference Include="libs\BepInEx.Core.dll" />
-    <Reference Include="libs\BepInEx.Unity.IL2CPP.dll" />
-    <Reference Include="libs\0Harmony.dll" />
-    <Reference Include="libs\Il2CppInterop.Runtime.dll" />
-    <Reference Include="libs\Il2CppSystem.dll" />
-    <Reference Include="libs\Assembly-CSharp.dll" />
-    <Reference Include="libs\UnityEngine.dll" />
-    <Reference Include="libs\UnityEngine.CoreModule.dll" />
-    <Reference Include="libs\UnityEngine.ImageConversionModule.dll" />
+    <!-- Explicit mapping to the true master assemblies on your disk -->
+    <Reference Include="Assembly-CSharp">
+      <HintPath>libs\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx.Core">
+      <HintPath>libs\BepInEx.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP">
+      <HintPath>libs\BepInEx.Unity.IL2CPP.dll</HintPath>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>libs\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>libs\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Il2CppSystem">
+      <HintPath>libs\Il2CppSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="Il2CppMscorlib">
+      <HintPath>Il2CppInterop\net472\Il2CppMscorlib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
