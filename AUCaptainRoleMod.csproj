@@ -1,36 +1,76 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
+
     <AssemblyName>AUCaptainRoleMod</AssemblyName>
+    <RootNamespace>AUCaptainRoleMod</RootNamespace>
+
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Explicit mapping to the true master assemblies on your disk -->
+
+    <!-- ========================================================= -->
+    <!-- AMONG US V18 INTEROP                                      -->
+    <!-- ========================================================= -->
+
     <Reference Include="Assembly-CSharp">
-      <HintPath>libs\Assembly-CSharp.dll</HintPath>
+      <HintPath>interop\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
     </Reference>
+
+    <!-- ========================================================= -->
+    <!-- BEPINEX                                                   -->
+    <!-- ========================================================= -->
+
     <Reference Include="BepInEx.Core">
       <HintPath>libs\BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
     </Reference>
+
     <Reference Include="BepInEx.Unity.IL2CPP">
       <HintPath>libs\BepInEx.Unity.IL2CPP.dll</HintPath>
+      <Private>false</Private>
     </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>libs\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>libs\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
+
+    <!-- ========================================================= -->
+    <!-- IL2CPP                                                    -->
+    <!-- ========================================================= -->
+
     <Reference Include="Il2CppInterop.Runtime">
       <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
+      <Private>false</Private>
     </Reference>
-    <Reference Include="Il2CppSystem">
-      <HintPath>libs\Il2CppSystem.dll</HintPath>
+
+    <!-- ========================================================= -->
+    <!-- HARMONY                                                   -->
+    <!-- ========================================================= -->
+
+    <Reference Include="0Harmony">
+      <HintPath>libs\0Harmony.dll</HintPath>
+      <Private>false</Private>
     </Reference>
-    <Reference Include="Il2CppMscorlib">
-      <HintPath>Il2CppInterop\net472\Il2CppMscorlib.dll</HintPath>
+
+    <!-- ========================================================= -->
+    <!-- UNITY                                                     -->
+    <!-- ========================================================= -->
+
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>interop\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
+
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>interop\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
   </ItemGroup>
+
 </Project>
