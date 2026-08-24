@@ -1,15 +1,13 @@
 // 1. FIXED ORDER: Global using alias placed at the absolute top of the source file
 
-
-
-
-
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using UnityEngine;
 using System.IO;
 using System.Reflection;
+using Il2Cpp;
+
 
 
 namespace AUCaptainRoleMod;
