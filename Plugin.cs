@@ -1,123 +1,498 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
+
 using HarmonyLib;
+
 using UnityEngine;
-using AmongUs.GameOptions; // 最新のAmong Usデータ構造用
 
-namespace AUCaptainRoleMod;
-
-[BepInPlugin("com.zionblood.aucaptainrole", "AUCaptainRoleMod", "1.0.0")]
-[BepInProcess("Among Us.exe")]
-public class Plugin : BasePlugin
+namespace AUCaptainRoleMod
 {
-    public static byte CaptainId = 255;
-    
-    public static bool IsZoomedOut = false;
-    public static float ZoomTimer = 0f;
-    public static float ZoomCooldown = 0f;
-
-    public static bool IsInvisible = false;
-    public static float InvisCooldown = 0f;
-
-    public static int RemainingMeetings = 1;
-
-    public override void Load()
+    [BepInPlugin(
+        "com.zionblood.aucaptainrole",
+        "AUCaptainRoleMod",
+        "1.0.0"
+    )]
+    [BepInProcess("Among Us.exe")]
+    public class Plugin : BasePlugin
     {
-        Log.LogInfo("AUCaptainRoleMod: 2026 Modern IL2CPP Patches Initializing...");
-        
-        Harmony harmony = new Harmony("com.zionblood.aucaptainrole");
-        harmony.PatchAll(Assembly.GetExecutingAssembly());
-    }
+        public static Harmony HarmonyInstance;
 
-    public static Sprite LoadCustomSprite(string fileName)
-    {
-        string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Assets", fileName);
-        if (!File.Exists(path))
+        // ============================================================
+        // CAPTAIN STATE
+        // ============================================================
+
+        // 255 = nobody assigned yet.
+        public static byte CaptainId = 255;
+
+        public static bool IsCaptain
         {
-            Texture2D fallbackTex = new Texture2D(1, 1);
-            return Sprite.Create(fallbackTex, new Rect(0, 0, 1, 1), Vector2.zero);
+            get
+            {
+                if (PlayerControl.LocalPlayer == null)
+                    return false;
+
+                return PlayerControl.LocalPlayer.PlayerId == CaptainId;
+            }
         }
-        byte[] fileData = File.ReadAllBytes(path);
-        Texture2D texture = new Texture2D(2, 2);
-        
-        _ = UnityEngine.Imageconversion.LoadImage(texture, fileData);
-        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-    }
 
-    // 1. 最新のHudManagerフック（余計なプレフィックスを排除）
-    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Start))]
-    public static class HudStartPatch
-    {
-        [HarmonyPostfix]
-        public static void Postfix(HudManager __instance)
+        // ============================================================
+        // ZOOM
+        // ============================================================
+
+        public static bool IsZoomedOut = false;
+
+        public static float ZoomTimer = 0f;
+
+        public static float ZoomCooldown = 0f;
+
+        private const float NormalZoom = 4.5f;
+        private const float CaptainZoom = 18f;
+        private const float ZoomDuration = 8f;
+        private const float ZoomCooldownDuration = 20f;
+
+        // ============================================================
+        // INVISIBILITY
+        // ============================================================
+
+        public static bool IsInvisible = false;
+
+        public static float InvisCooldown = 0f;
+
+        // ============================================================
+        // OTHER CAPTAIN ABILITIES
+        // ============================================================
+
+        public static int RemainingMeetings = 1;
+
+        // ============================================================
+        // PLUGIN LOAD
+        // ============================================================
+
+        public override void Load()
         {
-            if (PlayerControl.LocalPlayer == null || PlayerControl.LocalPlayer.PlayerId != CaptainId) return;
+            Log.LogInfo("======================================");
+            Log.LogInfo("AUCaptainRoleMod");
+            Log.LogInfo("Captain Role Mod - v1.0.0");
+            Log.LogInfo("Initializing...");
+            Log.LogInfo("======================================");
 
-            Sprite zoomSprite = LoadCustomSprite("zoom_out.png");
-            Sprite invisSprite = LoadCustomSprite("invisible.png");
-            Sprite teleSprite = LoadCustomSprite("teleport.png");
-            Sprite meetingSprite = LoadCustomSprite("button.png");
+            try
+            {
+                HarmonyInstance = new Harmony("com.zionblood.aucaptainrole");
+
+                HarmonyInstance.PatchAll(
+                    Assembly.GetExecutingAssembly()
+                );
+
+                Log.LogInfo("Harmony patches loaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.LogError("FAILED TO LOAD CAPTAIN MOD:");
+                Log.LogError(ex);
+            }
         }
-    }
 
-    // 2. 最新のPlayerControlフック
-    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
-    public static class GlobalAbilityTickPatch
-    {
-        [HarmonyPostfix]
-        public static void Postfix(PlayerControl __instance)
+        // ============================================================
+        // CAPTAIN ASSIGNMENT
+        // ============================================================
+
+        public static void SetCaptain(PlayerControl player)
         {
-            if (__instance.PlayerId != CaptainId || !__instance.AmOwner) return;
+            if (player == null)
+            {
+                Log.LogWarning("Tried to assign a null player as Captain.");
+                return;
+            }
 
-            if (ZoomCooldown > 0f) ZoomCooldown -= Time.fixedDeltaTime;
-            if (InvisCooldown > 0f) InvisCooldown -= Time.fixedDeltaTime;
+            CaptainId = player.PlayerId;
+
+            Log.LogInfo(
+                "Captain assigned to PlayerId: " + CaptainId
+            );
+        }
+
+        public static void ClearCaptain()
+        {
+            CaptainId = 255;
+
+            IsZoomedOut = false;
+            IsInvisible = false;
+
+            ZoomTimer = 0f;
+            ZoomCooldown = 0f;
+            InvisCooldown = 0f;
+
+            RestoreNormalCamera();
+
+            Log.LogInfo("Captain assignment cleared.");
+        }
+
+        // ============================================================
+        // CUSTOM SPRITE LOADER
+        // ============================================================
+
+        public static Sprite LoadCustomSprite(string fileName)
+        {
+            try
+            {
+                string assemblyDirectory =
+                    Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location
+                    );
+
+                string path = Path.Combine(
+                    assemblyDirectory,
+                    "Assets",
+                    fileName
+                );
+
+                if (!File.Exists(path))
+                {
+                    Log.LogWarning(
+                        "Captain asset not found: " + path
+                    );
+
+                    return null;
+                }
+
+                byte[] fileData = File.ReadAllBytes(path);
+
+                Texture2D texture = new Texture2D(
+                    2,
+                    2,
+                    TextureFormat.RGBA32,
+                    false
+                );
+
+                // IMPORTANT:
+                // The Unity class is ImageConversion,
+                // not Imageconversion.
+                bool loaded = ImageConversion.LoadImage(
+                    texture,
+                    fileData
+                );
+
+                if (!loaded)
+                {
+                    Log.LogWarning(
+                        "Unity failed to load image: " + fileName
+                    );
+
+                    return null;
+                }
+
+                Sprite sprite = Sprite.Create(
+                    texture,
+                    new Rect(
+                        0f,
+                        0f,
+                        texture.width,
+                        texture.height
+                    ),
+                    new Vector2(0.5f, 0.5f)
+                );
+
+                Log.LogInfo(
+                    "Loaded Captain asset: " + fileName
+                );
+
+                return sprite;
+            }
+            catch (Exception ex)
+            {
+                Log.LogError(
+                    "Failed to load asset " + fileName
+                );
+
+                Log.LogError(ex);
+
+                return null;
+            }
+        }
+
+        // ============================================================
+        // ZOOM ABILITY
+        // ============================================================
+
+        public static bool ActivateZoom()
+        {
+            if (!IsCaptain)
+                return false;
 
             if (IsZoomedOut)
-            {
-                ZoomTimer -= Time.fixedDeltaTime;
-                if (Camera.main != null)
-                {
-                    Camera.main.orthographicSize = 18f;
-                    Camera.main.transform.position = new Vector3(0f, 0f, Camera.main.transform.position.z);
-                }
+                return false;
 
-                if (ZoomTimer <= 0f)
+            if (ZoomCooldown > 0f)
+                return false;
+
+            IsZoomedOut = true;
+            ZoomTimer = ZoomDuration;
+
+            ApplyCaptainZoom();
+
+            Log.LogInfo("Captain zoom activated.");
+
+            return true;
+        }
+
+        public static void ApplyCaptainZoom()
+        {
+            Camera camera = Camera.main;
+
+            if (camera == null)
+                return;
+
+            camera.orthographicSize = CaptainZoom;
+        }
+
+        public static void RestoreNormalCamera()
+        {
+            Camera camera = Camera.main;
+
+            if (camera == null)
+                return;
+
+            camera.orthographicSize = NormalZoom;
+        }
+
+        public static void EndZoom()
+        {
+            IsZoomedOut = false;
+            ZoomTimer = 0f;
+
+            RestoreNormalCamera();
+
+            ZoomCooldown = ZoomCooldownDuration;
+
+            Log.LogInfo("Captain zoom ended.");
+        }
+
+        // ============================================================
+        // INVISIBILITY STATE
+        // ============================================================
+
+        public static bool ActivateInvisibility()
+        {
+            if (!IsCaptain)
+                return false;
+
+            if (IsInvisible)
+                return false;
+
+            if (InvisCooldown > 0f)
+                return false;
+
+            IsInvisible = true;
+
+            Log.LogInfo(
+                "Captain invisibility activated."
+            );
+
+            return true;
+        }
+
+        public static void EndInvisibility()
+        {
+            IsInvisible = false;
+
+            Log.LogInfo(
+                "Captain invisibility ended."
+            );
+        }
+
+        // ============================================================
+        // PLAYER UPDATE
+        // ============================================================
+
+        [HarmonyPatch(
+            typeof(PlayerControl),
+            nameof(PlayerControl.FixedUpdate)
+        )]
+        public static class PlayerControlFixedUpdatePatch
+        {
+            [HarmonyPostfix]
+            public static void Postfix(
+                PlayerControl __instance
+            )
+            {
+                try
                 {
-                    IsZoomedOut = false;
-                    if (Camera.main != null) Camera.main.orthographicSize = 4.5f;
-                    ZoomCooldown = 20f;
+                    if (__instance == null)
+                        return;
+
+                    if (!__instance.AmOwner)
+                        return;
+
+                    if (!IsCaptain)
+                        return;
+
+                    UpdateTimers();
+
+                    UpdateZoom();
+
+                    UpdateInvisibility();
+                }
+                catch (Exception ex)
+                {
+                    Log.LogError(
+                        "Captain FixedUpdate error:"
+                    );
+
+                    Log.LogError(ex);
                 }
             }
         }
-    }
 
-    // 3. 最新のIntroCutsceneフック
-    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.BeginCrewmate))]
-    public static class IntroSplashOverride
-    {
-        [HarmonyPostfix]
-        public static void Postfix(IntroCutscene __instance)
+        // ============================================================
+        // TIMER UPDATE
+        // ============================================================
+
+        private static void UpdateTimers()
         {
-            if (PlayerControl.LocalPlayer != null && PlayerControl.LocalPlayer.PlayerId == CaptainId)
+            float deltaTime = Time.fixedDeltaTime;
+
+            if (ZoomCooldown > 0f)
             {
-                if (__instance.RoleText != null)
+                ZoomCooldown -= deltaTime;
+
+                if (ZoomCooldown < 0f)
+                    ZoomCooldown = 0f;
+            }
+
+            if (InvisCooldown > 0f)
+            {
+                InvisCooldown -= deltaTime;
+
+                if (InvisCooldown < 0f)
+                    InvisCooldown = 0f;
+            }
+        }
+
+        // ============================================================
+        // ZOOM UPDATE
+        // ============================================================
+
+        private static void UpdateZoom()
+        {
+            if (!IsZoomedOut)
+                return;
+
+            ZoomTimer -= Time.fixedDeltaTime;
+
+            ApplyCaptainZoom();
+
+            if (ZoomTimer <= 0f)
+            {
+                EndZoom();
+            }
+        }
+
+        // ============================================================
+        // INVISIBILITY UPDATE
+        // ============================================================
+
+        private static void UpdateInvisibility()
+        {
+            /*
+             * The state is intentionally handled here separately
+             * from the visual/network implementation.
+             *
+             * Invisibility needs to be synchronized correctly between
+             * clients. Simply disabling the local PlayerControl GameObject
+             * would NOT be a correct multiplayer implementation.
+             */
+        }
+
+        // ============================================================
+        // HUD INITIALIZATION
+        // ============================================================
+
+        [HarmonyPatch(
+            typeof(HudManager),
+            nameof(HudManager.Start)
+        )]
+        public static class HudStartPatch
+        {
+            [HarmonyPostfix]
+            public static void Postfix(
+                HudManager __instance
+            )
+            {
+                try
                 {
-                    __instance.RoleText.text = "Captain";
-                    __instance.RoleText.color = new Color(0.66f, 0.0f, 1.0f, 1.0f);
+                    if (PlayerControl.LocalPlayer == null)
+                        return;
+
+                    if (!IsCaptain)
+                        return;
+
+                    Log.LogInfo(
+                        "Captain HUD initialized."
+                    );
+
+                    /*
+                     * Load the assets here for now.
+                     *
+                     * The actual Captain buttons should be created
+                     * using the current v18 HUD/button implementation,
+                     * rather than copying an older Among Us button
+                     * tutorial.
+                     */
+
+                    Sprite zoomSprite =
+                        LoadCustomSprite("zoom_out.png");
+
+                    Sprite invisSprite =
+                        LoadCustomSprite("invisible.png");
+
+                    Sprite teleportSprite =
+                        LoadCustomSprite("teleport.png");
+
+                    Sprite meetingSprite =
+                        LoadCustomSprite("button.png");
+
+                    if (zoomSprite != null)
+                        Log.LogInfo("Zoom sprite loaded.");
+
+                    if (invisSprite != null)
+                        Log.LogInfo("Invisibility sprite loaded.");
+
+                    if (teleportSprite != null)
+                        Log.LogInfo("Teleport sprite loaded.");
+
+                    if (meetingSprite != null)
+                        Log.LogInfo("Meeting sprite loaded.");
                 }
-                if (__instance.RoleBlurbText != null)
+                catch (Exception ex)
                 {
-                    __instance.RoleBlurbText.text = "Watch everything and Find the <color=#FF2200>Impostor</color>";
-                    __instance.RoleBlurbText.color = new Color(0.66f, 0.0f, 1.0f, 1.0f);
-                }
-                if (__instance.BackgroundBar != null)
-                {
-                    __instance.BackgroundBar.material.color = new Color(0.4f, 0.0f, 0.7f, 1.0f);
+                    Log.LogError(
+                        "Captain HUD initialization failed:"
+                    );
+
+                    Log.LogError(ex);
                 }
             }
+        }
+
+        // ============================================================
+        // CLEANUP
+        // ============================================================
+
+        public static void ResetCaptainState()
+        {
+            IsZoomedOut = false;
+            IsInvisible = false;
+
+            ZoomTimer = 0f;
+            ZoomCooldown = 0f;
+            InvisCooldown = 0f;
+
+            RestoreNormalCamera();
         }
     }
 }
