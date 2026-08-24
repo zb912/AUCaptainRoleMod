@@ -1,14 +1,16 @@
+using System;
+using System.IO;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using UnityEngine;
-using System.IO;
-using System.Reflection;
-using Il2CppInterop.Runtime;
+using AmongUs.GameOptions; // 最新のAmong Usデータ構造用
 
 namespace AUCaptainRoleMod;
 
 [BepInPlugin("com.zionblood.aucaptainrole", "AUCaptainRoleMod", "1.0.0")]
+[BepInProcess("Among Us.exe")]
 public class Plugin : BasePlugin
 {
     public static byte CaptainId = 255;
@@ -24,7 +26,8 @@ public class Plugin : BasePlugin
 
     public override void Load()
     {
-        Log.LogInfo("AUCaptainRoleMod: Running clean root assembly modifications...");
+        Log.LogInfo("AUCaptainRoleMod: 2026 Modern IL2CPP Patches Initializing...");
+        
         Harmony harmony = new Harmony("com.zionblood.aucaptainrole");
         harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
@@ -40,12 +43,11 @@ public class Plugin : BasePlugin
         byte[] fileData = File.ReadAllBytes(path);
         Texture2D texture = new Texture2D(2, 2);
         
-        // Using explicit universal module reference to clear texture data formatting blocks
         _ = UnityEngine.Imageconversion.LoadImage(texture, fileData);
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
-    // Modern flat type links without uncooperative parent directory tags
+    // 1. 最新のHudManagerフック（余計なプレフィックスを排除）
     [HarmonyPatch(typeof(HudManager), nameof(HudManager.Start))]
     public static class HudStartPatch
     {
@@ -61,6 +63,7 @@ public class Plugin : BasePlugin
         }
     }
 
+    // 2. 最新のPlayerControlフック
     [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
     public static class GlobalAbilityTickPatch
     {
@@ -91,6 +94,7 @@ public class Plugin : BasePlugin
         }
     }
 
+    // 3. 最新のIntroCutsceneフック
     [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.BeginCrewmate))]
     public static class IntroSplashOverride
     {
