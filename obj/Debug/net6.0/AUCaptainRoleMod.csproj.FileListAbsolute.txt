@@ -1,0 +1,5 @@
+/Users/zionblood/Documents/AUCaptainRoleMod/obj/Debug/net6.0/AUCaptainRoleMod.csproj.AssemblyReference.cache
+/Users/zionblood/Documents/AUCaptainRoleMod/obj/Debug/net6.0/AUCaptainRoleMod.GeneratedMSBuildEditorConfig.editorconfig
+/Users/zionblood/Documents/AUCaptainRoleMod/obj/Debug/net6.0/AUCaptainRoleMod.AssemblyInfoInputs.cache
+/Users/zionblood/Documents/AUCaptainRoleMod/obj/Debug/net6.0/AUCaptainRoleMod.AssemblyInfo.cs
+/Users/zionblood/Documents/AUCaptainRoleMod/obj/Debug/net6.0/AUCaptainRoleMod.csproj.CoreCompileInputs.cache

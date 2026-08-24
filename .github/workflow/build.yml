@@ -1,0 +1,28 @@
+name: Cloud Windows Mod Builder
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Clone Source Code Repository
+      uses: actions/checkout@v4
+
+    - name: Initialize Pristine Windows .NET Environment
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Execute Native Windows Compilation
+      run: dotnet build --configuration Release
+
+    - name: Extract Finished Mod Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: AUCaptainRoleMod-Binary
+        path: bin/Release/net6.0/AUCaptainRoleMod.dll
