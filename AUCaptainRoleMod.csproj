@@ -10,25 +10,17 @@
 
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
 
-    <!-- ========================================================= -->
-    <!-- AMONG US V18 INTEROP                                      -->
-    <!-- ========================================================= -->
-
+    <!-- Among Us -->
     <Reference Include="Assembly-CSharp">
-      <HintPath>interop\Assembly-CSharp.dll</HintPath>
+      <HintPath>libs\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
-    <!-- ========================================================= -->
-    <!-- BEPINEX                                                   -->
-    <!-- ========================================================= -->
-
+    <!-- BepInEx -->
     <Reference Include="BepInEx.Core">
       <HintPath>libs\BepInEx.Core.dll</HintPath>
       <Private>false</Private>
@@ -39,35 +31,26 @@
       <Private>false</Private>
     </Reference>
 
-    <!-- ========================================================= -->
-    <!-- IL2CPP                                                    -->
-    <!-- ========================================================= -->
-
-    <Reference Include="Il2CppInterop.Runtime">
-      <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
-    <!-- ========================================================= -->
-    <!-- HARMONY                                                   -->
-    <!-- ========================================================= -->
-
+    <!-- Harmony -->
     <Reference Include="0Harmony">
       <HintPath>libs\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
-    <!-- ========================================================= -->
-    <!-- UNITY                                                     -->
-    <!-- ========================================================= -->
+    <!-- IL2CPP -->
+    <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
 
+    <!-- Unity -->
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>interop\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>libs\UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>interop\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>libs\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
