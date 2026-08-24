@@ -1,5 +1,4 @@
 // 1. FIXED ORDER: Global using alias placed at the absolute top of the source file
-global using il2cpp = ::global::Il2Cpp;
 
 
 
