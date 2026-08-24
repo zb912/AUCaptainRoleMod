@@ -14,13 +14,11 @@
 
   <ItemGroup>
 
-    <!-- Among Us -->
     <Reference Include="Assembly-CSharp">
       <HintPath>libs\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
-    <!-- BepInEx -->
     <Reference Include="BepInEx.Core">
       <HintPath>libs\BepInEx.Core.dll</HintPath>
       <Private>false</Private>
@@ -31,26 +29,28 @@
       <Private>false</Private>
     </Reference>
 
-    <!-- Harmony -->
     <Reference Include="0Harmony">
       <HintPath>libs\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
-    <!-- IL2CPP -->
-    <Reference Include="Il2CppInterop.Runtime">
-      <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
-    <!-- Unity -->
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>libs\UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>libs\UnityEngine.ImageConversionModule.dll</HintPath>
+    <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>libs\Il2CppInterop.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Il2CppSystem">
+      <HintPath>libs\Il2CppSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Il2CppMscorlib">
+      <HintPath>Il2CppInterop\net472\Il2CppMscorlib.dll</HintPath>
       <Private>false</Private>
     </Reference>
 
