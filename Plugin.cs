@@ -4,7 +4,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.IO;
 using System.Reflection;
-using Il2CppInterop.Runtime; // Modern IL2CPP type mapping engine
+using Il2CppInterop.Runtime;
 
 namespace AUCaptainRoleMod;
 
@@ -24,9 +24,7 @@ public class Plugin : BasePlugin
 
     public override void Load()
     {
-        Log.LogInfo("AUCaptainRoleMod: Initializing modern IL2CPP assembly bridges...");
-        
-        // Modern IL2CPP assembly patch loader execution
+        Log.LogInfo("AUCaptainRoleMod: Running clean root assembly modifications...");
         Harmony harmony = new Harmony("com.zionblood.aucaptainrole");
         harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
@@ -42,18 +40,19 @@ public class Plugin : BasePlugin
         byte[] fileData = File.ReadAllBytes(path);
         Texture2D texture = new Texture2D(2, 2);
         
+        // Using explicit universal module reference to clear texture data formatting blocks
         _ = UnityEngine.Imageconversion.LoadImage(texture, fileData);
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
-    // MODERN HOOK: Uses explicit structural class type resolution for BepInEx 6
-    [HarmonyPatch(typeof(Il2Cpp.HudManager), nameof(Il2Cpp.HudManager.Start))]
+    // Modern flat type links without uncooperative parent directory tags
+    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Start))]
     public static class HudStartPatch
     {
         [HarmonyPostfix]
-        public static void Postfix(Il2Cpp.HudManager __instance)
+        public static void Postfix(HudManager __instance)
         {
-            if (Il2Cpp.PlayerControl.LocalPlayer == null || Il2Cpp.PlayerControl.LocalPlayer.PlayerId != CaptainId) return;
+            if (PlayerControl.LocalPlayer == null || PlayerControl.LocalPlayer.PlayerId != CaptainId) return;
 
             Sprite zoomSprite = LoadCustomSprite("zoom_out.png");
             Sprite invisSprite = LoadCustomSprite("invisible.png");
@@ -62,11 +61,11 @@ public class Plugin : BasePlugin
         }
     }
 
-    [HarmonyPatch(typeof(Il2Cpp.PlayerControl), nameof(Il2Cpp.PlayerControl.FixedUpdate))]
+    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
     public static class GlobalAbilityTickPatch
     {
         [HarmonyPostfix]
-        public static void Postfix(Il2Cpp.PlayerControl __instance)
+        public static void Postfix(PlayerControl __instance)
         {
             if (__instance.PlayerId != CaptainId || !__instance.AmOwner) return;
 
@@ -92,13 +91,13 @@ public class Plugin : BasePlugin
         }
     }
 
-    [HarmonyPatch(typeof(Il2Cpp.IntroCutscene), nameof(Il2Cpp.IntroCutscene.BeginCrewmate))]
+    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.BeginCrewmate))]
     public static class IntroSplashOverride
     {
         [HarmonyPostfix]
-        public static void Postfix(Il2Cpp.IntroCutscene __instance)
+        public static void Postfix(IntroCutscene __instance)
         {
-            if (Il2Cpp.PlayerControl.LocalPlayer != null && Il2Cpp.PlayerControl.LocalPlayer.PlayerId == CaptainId)
+            if (PlayerControl.LocalPlayer != null && PlayerControl.LocalPlayer.PlayerId == CaptainId)
             {
                 if (__instance.RoleText != null)
                 {
