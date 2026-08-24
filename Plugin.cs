@@ -1,4 +1,5 @@
 // 1. FIXED ORDER: Global using alias placed at the absolute top of the source file
+global using il2cpp = Il2Cpp;
 
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
